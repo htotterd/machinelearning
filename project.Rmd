@@ -1,0 +1,38 @@
+---
+title: "Predicting Type of Exercise from Personal Activity Data"
+author: "Helen Totterdell"
+date: "Thursday, March 19, 2015"
+output: html_document
+---
+
+#Introduction
+
+This project will build and evaluate a model to predict the type of exercise performed by various subjects using personal activity data from the following website:
+http://groupware.les.inf.puc-rio.br/har.
+A decision tree was built using variables in which the majority of observations did not have missing values using forwards stepwise selection.
+
+#Cross Validation
+The "leave p out" method was used for cross validation.  The data was partitioned into two different data sets, with 60% of the data in a training set and 40% of the data in a testing set.
+
+```{r}
+training <- read.csv("pml-training.csv")
+library(caret)
+set.seed(456)
+inTrain <- createDataPartition(y=training$classe, p=0.6, list=FALSE)
+initTraining <- training[inTrain, ]
+initTesting <- training[-inTrain, ]
+```
+
+#Building the Model
+In order to build the model, a decision tree was built using forwards stepwise selection of the variables in which the majority of the observations did not contain missing values.  The model with the highest accuracy (as shown by the confusion matrix) was selected as the final model.
+
+```{r}
+modfit <- train(classe ~ roll_belt+pitch_belt+yaw_belt+roll_arm+pitch_arm+yaw_arm, 
+                method="rpart", data=initTraining)
+pred <- predict(modfit,newdata=initTesting)
+confusionMatrix(pred, initTesting$classe)
+```
+
+#Out of Sample Error Rate
+The accuracy reported in the confusion matrix was .6385 using the six variables in the model above.  We would expect about 32.15% of the observations to be incorrectly classified using this model.
+
